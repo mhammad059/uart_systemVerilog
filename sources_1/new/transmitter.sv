@@ -61,7 +61,7 @@ module transmitter(
         endcase
     end
     
-    always_ff @(posedge bclk or posedge rst) begin
+    always_ff @(posedge bclk or posedge rst or posedge tx_en) begin
         if(rst) begin
             PS <= 0;
             TSR <= 0;

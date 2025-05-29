@@ -32,6 +32,8 @@ module tb_uart_top;
     
     wire tx_data;
     reg rx_data; 
+
+    assign rx_data = tx_data;
     
     wire [7:0] rx_d_out;
     
@@ -65,7 +67,6 @@ module tb_uart_top;
         tx_en = 0;
         sel_baud = 2'b01;  // 9600 baud
         tx_d_in = 8'b00000000;
-        rx_data = 1;
 
         // Reset
         #50;
@@ -77,22 +78,7 @@ module tb_uart_top;
         tx_en = 1;
         #100;
         tx_en = 0;
-        
-        // Wait for transmission
-        #50000;
-        
-        // Transmit second byte (0x3C)
-        tx_d_in = 8'h3C;
-        tx_en = 1;
-        #100;
-        tx_en = 0;
 
-        // Wait for receiver
-        #50000;
-
-        // Stop simulation
-        #1000;
-        $finish;
     end
 
     // Monitor UART data
@@ -102,4 +88,3 @@ module tb_uart_top;
     end
 
 endmodule
-
