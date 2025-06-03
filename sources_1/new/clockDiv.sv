@@ -20,16 +20,23 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module clockDiv #(parameter DIV = 100000000)(
+module clockDiv #(parameter DIV = 8)(
     input logic inp_clk,
+    input logic rst,
     output logic out_clk
     );
 
-    logic [26:0] count = 0;
-    always@(posedge inp_clk) begin
-        if(count == DIV - 1) count <= 0;
-        else count <= count + 1;
-        out_clk <= (count<DIV/2) ? 1'b0 : 1'b1;
+    logic [$clog2(DIV)-1:0] count;
+    always@(posedge inp_clk or posedge rst) begin
+        if(rst) begin
+            out_clk <= 0;
+            count <= 0;
+        end
+        else begin
+            if(count == DIV - 1) count <= 0;
+            else count <= count + 1;
+            out_clk <= (count<DIV/2) ? 1'b0 : 1'b1;
+        end
     end
     
 endmodule

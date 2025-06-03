@@ -21,6 +21,7 @@
 
 
 module transmitter(
+    input logic sys_clk,
     input logic rst,
     input logic bclk,
     input logic [7:0] THR,
@@ -37,8 +38,8 @@ module transmitter(
     logic [1:0] PS;
     logic [9:0] TSR;
     logic [3:0] count;
-    
-    
+    logic bclk_old;
+        
     always_comb begin // combinational control logic
         case(PS)
             IDLE: begin
@@ -61,31 +62,35 @@ module transmitter(
         endcase
     end
     
-    always_ff @(posedge bclk or posedge rst or posedge tx_en) begin
+    always_ff @(posedge sys_clk or posedge rst) begin
         if(rst) begin
             PS <= 0;
             TSR <= 0;
+            bclk_old <= bclk;
         end
         else begin
-            case(PS)
-                IDLE: begin
-                    TSR <= THR;
-                    count <= 0;
-                    if(tx_en) PS <= START;
-                    else PS <= IDLE;
-                end
-                START: begin
-                    PS <= DATA;
-                    TSR <= {1'b1, THR, 1'b0};
-                end
-                DATA: begin
-                    TSR[8:0] <= TSR[9:1]; // shift right 
-                    count <= count + 1;
-                    if(count == 9) PS <= STOP;
-                    else PS <= DATA;
-                end
-                STOP: PS <= IDLE;
-            endcase
+            bclk_old <= bclk;
+            if (bclk & ~bclk_old) begin // positive change
+                case(PS)
+                    IDLE: begin
+                        TSR <= THR;
+                        count <= 0;
+                        if(tx_en) PS <= START;
+                        else PS <= IDLE;
+                    end
+                    START: begin
+                        PS <= DATA;
+                        TSR <= {1'b1, THR, 1'b0};
+                    end
+                    DATA: begin
+                        TSR[8:0] <= TSR[9:1]; // shift right 
+                        count <= count + 1;
+                        if(count == 9) PS <= STOP;
+                        else PS <= DATA;
+                    end
+                    STOP: PS <= IDLE;
+                endcase
+            end
         end
     end
     

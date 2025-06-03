@@ -21,6 +21,7 @@
 
 
 module receiver(
+    input logic sys_clk,
     input logic rst,
     input logic bclkx8,
     input logic rx_data,
@@ -30,6 +31,7 @@ module receiver(
     
     logic [3:0] bit_count;
     logic [2:0] count;
+    logic bclkx8_old;
 
     parameter IDLE = 2'b00;
     parameter START = 2'b01;
@@ -57,52 +59,56 @@ module receiver(
         endcase
     end
 
-    always_ff @(posedge bclkx8 or posedge rst) begin
+    always_ff @(posedge sys_clk or posedge rst) begin
         if(rst) begin
             RHR <= 0;
             RSR <= 0;
             PS <= 0;
             count <= 0;
             bit_count <= 0;
+            bclkx8_old <= bclkx8;
         end else begin
-            case(PS)
-                IDLE: begin
-                    count <= 0;
-                    bit_count <=0;
-                    if(rx_data) PS <= IDLE;
-                    else PS <= START; // if rx_data == 0 -> start receiving
-                    end
-                START: begin
-                    bit_count <=0;
-                    if(count == 3) begin // sample if count == 3 (4 clk cycles)
-                        RSR[9:0] <= {RSR[8:0], rx_data}; // shift right
-                        PS <= DATA;
+            bclkx8_old <= bclkx8;
+            if (bclkx8 & ~bclkx8_old) begin // positive change
+                case(PS)
+                    IDLE: begin
                         count <= 0;
-                    end else begin 
-                        PS <= START;
-                        count <= count + 1;
-                    end
-                end
-                DATA: begin
-                    if(count == 7) begin // sample if count == 7 (8 clk cycles)
-                        bit_count <= bit_count + 1;
-                        count <= 0;
-                        RSR[9:0] <= {rx_data, RSR[9:1]}; // shift right
-                    end else begin
-                        count <= count + 1; 
-                        if(bit_count == 9) PS <= STOP; // if complete, stop reading
-                        else begin
+                        bit_count <=0;
+                        if(rx_data) PS <= IDLE;
+                        else PS <= START; // if rx_data == 0 -> start receiving
+                        end
+                    START: begin
+                        bit_count <=0;
+                        if(count == 3) begin // sample if count == 3 (4 clk cycles)
+                            RSR[9:0] <= {RSR[8:0], rx_data}; // shift right
                             PS <= DATA;
+                            count <= 0;
+                        end else begin 
+                            PS <= START;
+                            count <= count + 1;
                         end
                     end
-                end
-                STOP: begin
-                    RHR <= RSR[8:1];
-                    PS <= IDLE;
-                    count <= 0;
-                    bit_count <=0;
-                end
-            endcase
+                    DATA: begin
+                        if(count == 7) begin // sample if count == 7 (8 clk cycles)
+                            bit_count <= bit_count + 1;
+                            count <= 0;
+                            RSR[9:0] <= {rx_data, RSR[9:1]}; // shift right
+                        end else begin
+                            count <= count + 1; 
+                            if(bit_count == 9) PS <= STOP; // if complete, stop reading
+                            else begin
+                                PS <= DATA;
+                            end
+                        end
+                    end
+                    STOP: begin
+                        RHR <= RSR[8:1];
+                        PS <= IDLE;
+                        count <= 0;
+                        bit_count <=0;
+                    end
+                endcase
+            end
         end
     end
         

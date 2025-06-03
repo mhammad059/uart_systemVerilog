@@ -19,6 +19,11 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+`ifdef CLOCK_HZ
+  localparam int SYS_CLK_FREQ = `CLOCK_HZ; // if clock defined in script file
+`else
+  localparam int SYS_CLK_FREQ = 100_000_000; // default
+`endif
 
 module uart_top(
     input logic rst,
@@ -40,20 +45,20 @@ module uart_top(
     logic bclk;
     logic bclkx8;    
     
-    buadRateGen #(.SYS_CLK_FREQ(100000000)) brateGen(
-        .sys_clk, .sel_baud, // 0:4800, 1:9600, 2:19200, 3:38400
+    buadRateGen #(.SYS_CLK_FREQ(SYS_CLK_FREQ)) brateGen(
+        .sys_clk, .rst, .sel_baud, // 0:4800, 1:9600, 2:19200, 3:38400
         .bclk,
         .bclkx8    
         );
     
-    transmitter tx(.rst, .bclk,
+    transmitter tx(.sys_clk, .rst, .bclk,
         .THR(tx_d_in),
         .tx_en,
         .tx_status,
         .tx_data
         );
     
-    receiver rx(.rst, .bclkx8,
+    receiver rx(.sys_clk, .rst, .bclkx8,
         .rx_data,
         .rx_status,
         .RHR(rx_d_out)

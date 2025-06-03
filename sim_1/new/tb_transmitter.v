@@ -53,15 +53,12 @@ module tb_transmitter;
         
         // Apply stimulus
         #20 tx_en = 1; // Enable transmission
-        #10 tx_en = 0; // Disable transmission after 10ns
         
         // Wait for transmission to complete
         #200;
         
         // Apply another test case
         data_in = 8'b01101101;
-        #20 tx_en = 1;
-        #10 tx_en = 0;
         
         #200;
         

@@ -23,9 +23,9 @@
 module tb_buadRateGen;
 
     // Testbench signals
-    logic sys_clk;
-    logic [1:0] sel_baud;
-    logic bclk, bclkx8;
+    reg sys_clk;
+    reg [1:0] sel_baud;
+    wire bclk, bclkx8;
     
     // Instantiate the DUT (Device Under Test)
     buadRateGen dut (

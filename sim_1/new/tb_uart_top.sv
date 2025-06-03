@@ -39,6 +39,7 @@ module tb_uart_top;
     
     wire rx_status;
     wire tx_status;
+    
 
     // Instantiate the UART Top Module
     uart_top uut (
@@ -76,8 +77,8 @@ module tb_uart_top;
         // Transmit first byte (0xA5)
         tx_d_in = 8'hA5;
         tx_en = 1;
-        #100;
-        tx_en = 0;
+        // #100;
+        // tx_en = 0;
 
     end
 
@@ -88,3 +89,4 @@ module tb_uart_top;
     end
 
 endmodule
+
