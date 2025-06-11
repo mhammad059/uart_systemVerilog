@@ -23,6 +23,7 @@
 module tb_buadRateGen;
 
     // Testbench signals
+    reg rst;
     reg sys_clk;
     reg [1:0] sel_baud;
     wire bclk, bclkx8;
@@ -32,7 +33,8 @@ module tb_buadRateGen;
         .sys_clk(sys_clk),
         .sel_baud(sel_baud),
         .bclk(bclk),
-        .bclkx8(bclkx8)
+        .bclkx8(bclkx8),
+        .rst(rst)
     );
 
     // Generate a 100 MHz system clock (10 ns period)
@@ -41,7 +43,20 @@ module tb_buadRateGen;
     // Test procedure
     initial begin
         // Initialize signals
+
+        rst = 1; #5
+        rst = 0;
+
         sys_clk = 0;
+        sel_baud = 2'b00;  // Start with 4800 baud
+
+        #10000000; 
+        sel_baud = 2'b01;  // Start with 4800 baud
+
+        #10000000; 
+        sel_baud = 2'b10;  // Start with 4800 baud
+
+        #10000000; 
         sel_baud = 2'b11;  // Start with 4800 baud
 
         #10000000; 
